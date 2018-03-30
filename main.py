@@ -36,9 +36,6 @@ decoded_imgs = model.decode(encoded_imgs)
 displayImageTable2(x_test, decoded_imgs)
 
 X = model.encode(x_train)
-n = X.shape[0]
-imgShape = X.shape[1:]
-X = np.reshape(X, [n, -1])
 
 gmm = mixture.GaussianMixture(n_components=30, tol=1e-20, max_iter=3000, n_init=1, covariance_type='full', verbose=2).fit(X)
 
@@ -47,7 +44,6 @@ print("iterations performed:", gmm.n_iter_)
 n_gen = 25
 
 gen = gmm.sample(n_samples=n_gen)[0]
-gen = np.reshape(gen, (-1,) + imgShape)
 gen_decode = model.decode(gen)
 
 displayImageTable(gen_decode, n_display=n_gen)
