@@ -14,7 +14,6 @@ Implicit Maximum Likelihood generative algorithm
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-
 imgSize = (32, 32)
 x_train = resizeImages(x_train, imgSize)
 x_test = resizeImages(x_test, imgSize)
@@ -34,20 +33,16 @@ model.train(x_train, x_test, epochs, batch_size)
 encoded_imgs = model.encode(x_test)
 decoded_imgs = model.decode(encoded_imgs)
 
-decoded_imgs = decoded_imgs
-
 displayImageTable2(x_test, decoded_imgs)
 
 X = model.encode(x_train)
 n = X.shape[0]
 imgShape = X.shape[1:]
 X = np.reshape(X, [n, -1])
-print(imgShape)
 
 gmm = mixture.GaussianMixture(n_components=30, tol=1e-20, max_iter=3000, n_init=1, covariance_type='full', verbose=2).fit(X)
 
 print("iterations performed:", gmm.n_iter_)
-print("weights, means, covs, precisions:", gmm.weights_, gmm.means_, gmm.covariances_, gmm.precisions_)
 
 n_gen = 25
 
