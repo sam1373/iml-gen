@@ -65,4 +65,3 @@ gen = gmm.sample(n_samples=n_gen)[0]
 gen_decode = model.decode(gen)
 
 displayImageTable(gen_decode, n_display=n_gen)
-
