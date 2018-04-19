@@ -1,49 +1,11 @@
-from skimage.transform import resize
-
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-
-import numpy as np
-
-from scipy import linalg
-
 import itertools
 
-def resizeImages(X, imgSize):
-    X_resized = np.zeros([X.shape[0], imgSize[0], imgSize[1]])
-    for i in range(X.shape[0]):
-        X_resized[i] = resize(X[i], imgSize)
-    return X_resized
+import numpy as np
+from scipy import linalg
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 
-def displayImageTable(imgArray, n_display=10, tblW=8, tblH=8):
-    plt.figure(figsize=(5, 5))
-    #w, h = imgArray.shape[-2:]
-    for i in range(1,n_display+1):
-        ax = plt.subplot(tblW, tblH, i)
-        plt.imshow(imgArray[i - 1].squeeze())
-        plt.gray()
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-
-    plt.show()
-
-def displayImageTable2(imgArray, imgArray2, n_display=10, tblW=4):
-    plt.figure(figsize=(5, 5))
-    #w, h = imgArray.shape[-2:]
-    for i in range(1, n_display + 1):
-        ax = plt.subplot(2, n_display, i)
-        plt.imshow(imgArray[i].squeeze())
-        plt.gray()
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-
-        ax = plt.subplot(2, n_display, i + n_display)
-        plt.imshow(imgArray2[i].squeeze())
-        plt.gray()
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-    plt.show()
-
+from sklearn import mixture
 
 color_iter = itertools.cycle(['navy', 'c', 'cornflowerblue', 'gold',
                               'darkorange'])
@@ -51,7 +13,7 @@ color_iter = itertools.cycle(['navy', 'c', 'cornflowerblue', 'gold',
 
 def plot_results(X, Y_, means, covariances, title, index=0, plotCircles=1, plots=1):
     splot = plt.subplot(plots, 1, 1 + index)
-    
+
     xMean = X[:, 0].mean()
     yMean = X[:, 1].mean()
 
@@ -60,6 +22,8 @@ def plot_results(X, Y_, means, covariances, title, index=0, plotCircles=1, plots
 
     X[:, 0] -= xMean
     X[:, 1] -= yMean
+
+
     for i, (mean, covar, color) in enumerate(zip(
             means, covariances, color_iter)):
         v, w = linalg.eigh(covar)
@@ -86,3 +50,32 @@ def plot_results(X, Y_, means, covariances, title, index=0, plotCircles=1, plots
     plt.xticks(())
     plt.yticks(())
     plt.title(title)
+
+
+# Number of samples per component
+n_samples = 500
+
+# Generate random sample, two components
+np.random.seed(0)
+C = np.array([[0., -0.1], [1.7, .4]])
+X = np.r_[np.dot(np.random.randn(n_samples, 2), C),
+          .7 * np.random.randn(n_samples, 2) + np.array([-6, 3])]
+
+# Fit a Gaussian mixture with EM using five components
+gmm = mixture.GaussianMixture(n_components=5, covariance_type='full').fit(X)
+#plot_results(X, gmm.predict(X), gmm.means_, gmm.covariances_, 0,
+#             'Gaussian Mixture', plots=2)
+
+gen = gmm.sample(n_samples=100)[0]
+print(X[:5])
+print(gen[:5])
+plot_results(gen, gmm.predict(gen), gmm.means_, gmm.covariances_,
+             'Generated Samples', plotCircles=1, plots=1)
+"""
+# Fit a Dirichlet process Gaussian mixture using five components
+dpgmm = mixture.BayesianGaussianMixture(n_components=5,
+                                        covariance_type='full').fit(X)
+plot_results(X, dpgmm.predict(X), dpgmm.means_, dpgmm.covariances_, 1,
+             'Bayesian Gaussian Mixture with a Dirichlet process prior')
+"""
+plt.show()

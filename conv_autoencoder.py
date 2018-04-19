@@ -13,7 +13,15 @@ class ConvolutionalAutoencoder(AutoencoderBase):
 
         input_img = Input(shape=(w_in, h_in, 1), name='EncoderIn')
         decoder_input = Input(shape=(enc_dim, ), name='DecoderIn')
-        flatten_input = (w_in // (2 ** resize_factor), h_in // (2 ** resize_factor), dims_conv[-1][0])
+
+        flatten_filters = 1
+        if len(dims_conv) > 1:
+            flatten_filters = dims_conv[-1][0]
+
+        flatten_input = (w_in, h_in, flatten_filters)
+        for i in range(resize_factor):
+            flatten_input = (flatten_input[0] // 2 + flatten_input[0] % 2, flatten_input[1] // 2 + flatten_input[1] % 2, flatten_input[2])
+
         flatten_output = (np.prod(flatten_input),)
 
 
@@ -57,12 +65,13 @@ class ConvolutionalAutoencoder(AutoencoderBase):
             decoded = upsample(decoded)
             decoder = upsample(decoder)
 
-        convlayer = Convolution2D(1, dims_conv[0][1], dims_conv[0][2], activation='sigmoid', border_mode='same')
-        decoded = convlayer(decoded)
-        decoder = convlayer(decoder)
+        if len(dims_conv) > 0:
+            convlayer = Convolution2D(1, 3, 3, activation='sigmoid', border_mode='same')
+            decoded = convlayer(decoded)
+            decoder = convlayer(decoder)
 
         self.autoencoder = Model(input=input_img, output=decoded)
         self.encoder = Model(input=input_img, output=encoded)
-        self.decoder = Model(input=decoder_input, output=decoder)
+        self.decoder = Model(input=decoder_input, output=decoder)   
 
-        self.autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
+        self.autoencoder.compile(optimizer='adam', loss='mean_squared_error')
